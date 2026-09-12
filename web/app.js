@@ -1,55 +1,108 @@
-/* 반려견 소개 페이지 — 하는 일은 두 가지뿐이다.
+/* 하는 일은 두 가지다 — 헤더 스와이퍼, 갤러리 확대 보기.
  *
- *  1. 아직 없는 사진 자리를 표시한다
- *  2. 갤러리 사진을 클릭하면 크게 보여준다
- *
- * 사진을 photos/ 에 넣으면 1번은 저절로 사라진다. HTML을 고칠 필요가 없다.
+ * 스와이퍼에 라이브러리를 쓰지 않았다. 가로 스크롤 + CSS scroll-snap이면
+ * 터치 관성, 휠, 키보드, 접근성을 브라우저가 이미 처리한다. 라이브러리를
+ * 넣으면 그걸 전부 흉내 낸 코드를 대신 짊어지게 된다.
+ * JS가 맡는 것은 점 표시, 화살표, 자동 넘김뿐이다.
  */
 (function () {
   'use strict';
 
-  /* ── 1. 없는 사진 표시 ──────────────────────────────────────
-     img 로드가 실패하면 부모 .photo에 data-missing을 붙인다.
-     CSS가 그걸 보고 어떤 파일을 넣어야 하는지 안내를 띄운다.
-     실패를 조용히 넘기면 빈 칸만 남아서, 보는 사람은 페이지가
-     깨진 건지 원래 그런 건지 알 수 없다.                        */
-  document.querySelectorAll('.photo img').forEach(function (img) {
-    var box = img.closest('.photo');
-    function markMissing() { if (box) box.dataset.missing = '1'; }
-    function clearMissing() { if (box) delete box.dataset.missing; }
+  var reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    img.addEventListener('error', markMissing);
-    img.addEventListener('load', clearMissing);
+  /* ── 스와이퍼 ────────────────────────────────────────────── */
+  var swiper = document.getElementById('swiper');
+  var track = document.getElementById('slides');
+  var dotsBox = document.getElementById('dots');
 
-    // 이미 로드가 끝난(또는 실패한) 상태면 이벤트가 오지 않는다.
-    if (img.complete) { (img.naturalWidth ? clearMissing : markMissing)(); }
-  });
+  if (swiper && track && dotsBox) {
+    var slides = Array.prototype.slice.call(track.children);
+    var current = 0;
+    var timer = null;
 
-  /* ── 2. 사진 확대 보기 ─────────────────────────────────────
-     <dialog>을 쓰면 포커스 가둠과 Esc 닫기를 브라우저가 해준다.
-     직접 만들면 접근성에서 놓치는 것이 많다.                    */
+    // 점 만들기 — 슬라이드 수가 바뀌어도 HTML을 고칠 필요가 없다
+    var dots = slides.map(function (_, i) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('role', 'tab');
+      b.setAttribute('aria-label', (i + 1) + '번째 사진');
+      b.addEventListener('click', function () { go(i); restart(); });
+      dotsBox.appendChild(b);
+      return b;
+    });
+
+    function paint(i) {
+      current = i;
+      dots.forEach(function (d, n) {
+        d.setAttribute('aria-selected', n === i ? 'true' : 'false');
+      });
+    }
+
+    function go(i) {
+      var n = (i + slides.length) % slides.length;
+      track.scrollTo({ left: slides[n].offsetLeft, behavior: reduced ? 'auto' : 'smooth' });
+      paint(n);
+    }
+
+    // 스크롤로 직접 넘겼을 때도 점이 따라오게 한다.
+    // 스크롤 이벤트는 많이 오므로 마지막 한 번만 처리한다.
+    var t;
+    track.addEventListener('scroll', function () {
+      clearTimeout(t);
+      t = setTimeout(function () {
+        var i = Math.round(track.scrollLeft / track.clientWidth);
+        if (i !== current) paint(Math.min(Math.max(i, 0), slides.length - 1));
+      }, 90);
+    });
+
+    swiper.querySelector('.prev').addEventListener('click', function () { go(current - 1); restart(); });
+    swiper.querySelector('.next').addEventListener('click', function () { go(current + 1); restart(); });
+
+    track.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowLeft') { e.preventDefault(); go(current - 1); restart(); }
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(current + 1); restart(); }
+    });
+
+    /* 자동 넘김. 멈추는 조건을 갖추지 않으면 읽는 사람을 방해한다:
+       모션 최소화 설정, 마우스를 올린 동안, 키보드 초점이 들어온 동안,
+       다른 탭을 보는 동안에는 돌리지 않는다. */
+    function start() {
+      if (reduced || slides.length < 2) return;
+      timer = setInterval(function () { go(current + 1); }, 5000);
+    }
+    function stop() { clearInterval(timer); timer = null; }
+    function restart() { stop(); start(); }
+
+    ['mouseenter', 'focusin', 'touchstart'].forEach(function (ev) {
+      swiper.addEventListener(ev, stop, { passive: true });
+    });
+    ['mouseleave', 'focusout'].forEach(function (ev) {
+      swiper.addEventListener(ev, start);
+    });
+    document.addEventListener('visibilitychange', function () {
+      document.hidden ? stop() : start();
+    });
+
+    paint(0);
+    start();
+  }
+
+  /* ── 갤러리 확대 ─────────────────────────────────────────
+     <dialog>을 쓰면 Esc 닫기와 포커스 가둠을 브라우저가 해준다. */
   var dlg = document.getElementById('lightbox');
   var big = document.getElementById('lightboxImg');
   var close = document.getElementById('lightboxClose');
 
   if (dlg && big && typeof dlg.showModal === 'function') {
-    document.querySelectorAll('.gallery .photo img').forEach(function (img) {
+    document.querySelectorAll('.gallery img').forEach(function (img) {
       img.addEventListener('click', function () {
-        if (img.closest('.photo').dataset.missing) return;   // 없는 사진은 무시
         big.src = img.currentSrc || img.src;
         big.alt = img.alt || '';
         dlg.showModal();
       });
     });
-
     if (close) close.addEventListener('click', function () { dlg.close(); });
-
-    // 사진 바깥(백드롭)을 누르면 닫는다
-    dlg.addEventListener('click', function (e) {
-      if (e.target === dlg) dlg.close();
-    });
-
-    // 닫을 때 src를 비워 메모리를 쥐고 있지 않게 한다
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) dlg.close(); });
     dlg.addEventListener('close', function () { big.removeAttribute('src'); });
   }
 })();
