@@ -1,0 +1,14 @@
+# 일괄 생성 목록 — 한 줄에 한 건, #은 주석
+#
+# 세 가지 형태를 섞어 쓸 수 있다:
+#   별칭          → 이름·URL·스캔 안전색이 자동으로 붙는다 (--list-sites로 확인)
+#   이름 | 데이터  → 이름이 파일명이자 캡션이 된다
+#   맨 URL        → 도메인에서 파일명을 뽑는다
+
+naver
+youtube
+instagram
+
+회사 홈   | https://ourco.kr
+채용 공고 | https://ourco.kr/careers
+https://example.com
