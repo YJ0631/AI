@@ -3,134 +3,169 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>QR 생성기</title>
-<meta name="description" content="스캔되는 QR을 만드는 도구. 색 대비를 실시간으로 검사해 읽히지 않는 QR을 미리 막아준다.">
+<title>만든 것들</title>
+<meta name="description" content="카드뉴스, QR 생성기, 웹 추출 도구 — 만든 것과 확인한 방법.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="home.css">
 </head>
 <body>
 
-<header class="masthead">
+<header class="hero">
   <div class="wrap">
-    <p class="eyebrow">QR CODE GENERATOR</p>
-    <h1>스캔되는 QR을 만든다</h1>
-    <p class="lede">QR은 “생성됐다”와 “읽힌다”가 다릅니다. 브랜드 색을 그대로 쓰면 대비가 모자라 인식이 불안정해지는데, 눈으로는 알아채기 어렵습니다. 이 도구는 색 대비를 실시간으로 검사해 그걸 미리 알려줍니다.</p>
+    <p class="eyebrow">MADE / 2026</p>
+    <h1>만든 것들</h1>
+    <p class="lede">콘텐츠를 만드는 도구와, 그 도구로 만든 것들. 결과물보다 <strong>어떻게 확인했는지</strong>가 더 볼 만합니다.</p>
+
+    <dl class="stats">
+      <div><dt>카드뉴스</dt><dd>30<span>장</span></dd></div>
+      <div><dt>QR 프리셋</dt><dd>18<span>개</span></dd></div>
+      <div><dt>디코딩 검증</dt><dd>5<span>/5</span></dd></div>
+      <div><dt>자동화 도구</dt><dd>3<span>종</span></dd></div>
+    </dl>
   </div>
 </header>
 
-<main class="wrap layout">
+<main class="wrap">
 
-  <!-- ── 왼쪽: 입력 ───────────────────────────────── -->
-  <section class="panel controls">
-
-    <div class="field">
-      <label for="data">내용</label>
-      <textarea id="data" rows="3" spellcheck="false"
-                placeholder="https://example.com 또는 아무 텍스트">https://github.com/YJ0631</textarea>
-      <p class="hint" id="dataHint">입력하는 대로 오른쪽 미리보기가 바뀝니다.</p>
+  <!-- ── 01 QR 생성기 ───────────────────────────── -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">01</span>
+      <h2>QR 생성기</h2>
+      <span class="tag">웹 도구</span>
     </div>
 
-    <div class="field">
-      <label>사이트 프리셋</label>
-      <div class="presets" id="presets"></div>
-      <p class="hint">누르면 주소와 <strong>스캔 안전색</strong>이 함께 채워집니다. 브랜드 색 그대로가 아닙니다 — 아래 설명 참고.</p>
-    </div>
-
-    <div class="field row2">
-      <div>
-        <label for="dark">모듈 색</label>
-        <div class="colorbox">
-          <input type="color" id="dark" value="#111111">
-          <input type="text" id="darkHex" class="hex" value="#111111" spellcheck="false">
-        </div>
+    <div class="feature">
+      <div class="feature-text">
+        <p class="claim">QR은 “생성됐다”와 “읽힌다”가 다릅니다.</p>
+        <p>브랜드 색을 그대로 쓰면 모듈과 배경의 밝기 차이가 모자라 인식이 흔들립니다. 네이버 초록 <code>#03C75A</code>는 흰 배경 대비가 <strong>2.2 : 1</strong>인데, 화면으로는 멀쩡해 보여서 인쇄하고 나서야 알게 됩니다.</p>
+        <p>그래서 두 색의 대비비를 <strong>입력하는 즉시 계산</strong>하고, 모자라면 색상은 유지한 채 명도만 낮춘 대안을 제시하도록 만들었습니다. 사이트 프리셋 18개에 들어간 색도 브랜드 색이 아니라 그렇게 보정한 값입니다.</p>
+        <a class="cta" href="qr/">생성기 열기 <span aria-hidden="true">→</span></a>
       </div>
-      <div>
-        <label for="light">배경 색</label>
-        <div class="colorbox">
-          <input type="color" id="light" value="#FFFFFF">
-          <input type="text" id="lightHex" class="hex" value="#FFFFFF" spellcheck="false">
-        </div>
-      </div>
+      <ul class="speclist">
+        <li><span>생성</span> 브라우저 안에서 — 입력은 전송되지 않음</li>
+        <li><span>검사</span> WCAG 대비비 실시간 + 명암 뒤집힘 경고</li>
+        <li><span>기본값</span> 오류정정 H(30%) · 여백 4모듈</li>
+        <li><span>출력</span> PNG · SVG</li>
+        <li><span>검증</span> Playwright 조작 → OpenCV 재디코딩 5/5</li>
+      </ul>
     </div>
-
-    <div class="contrast" id="contrast" data-level="ok">
-      <div class="contrast-head">
-        <span class="contrast-label">대비비</span>
-        <span class="contrast-value" id="ratio">21.0 : 1</span>
-      </div>
-      <p class="contrast-msg" id="contrastMsg">충분합니다.</p>
-      <button type="button" class="fixbtn" id="fixBtn" hidden>안전한 색으로 바꾸기</button>
-    </div>
-
-    <div class="field row2">
-      <div>
-        <label for="ecc">오류정정</label>
-        <select id="ecc">
-          <option value="L">L — 7% 복원</option>
-          <option value="M">M — 15% 복원</option>
-          <option value="Q">Q — 25% 복원</option>
-          <option value="H" selected>H — 30% 복원 (권장)</option>
-        </select>
-      </div>
-      <div>
-        <label for="margin">여백 (모듈)</label>
-        <input type="number" id="margin" min="0" max="12" step="1" value="4">
-      </div>
-    </div>
-    <p class="hint">로고를 얹을 계획이면 <strong>H</strong>를 유지하세요. 인쇄물은 여백 <strong>4 이상</strong>이 규격입니다.</p>
-
-    <div class="field">
-      <label for="size">크기 <span class="mono" id="sizeOut">512px</span></label>
-      <input type="range" id="size" min="128" max="1024" step="32" value="512">
-    </div>
-
   </section>
 
-  <!-- ── 오른쪽: 미리보기 ─────────────────────────── -->
-  <section class="panel preview">
-    <div class="stage" id="stage">
-      <canvas id="canvas" aria-label="생성된 QR 코드"></canvas>
+  <!-- ── 02 카드뉴스 ────────────────────────────── -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">02</span>
+      <h2>요리 카드뉴스</h2>
+      <span class="tag">콘텐츠</span>
     </div>
 
-    <dl class="meta">
-      <div><dt>버전</dt><dd id="mVersion">—</dd></div>
-      <div><dt>모듈</dt><dd id="mModules">—</dd></div>
-      <div><dt>길이</dt><dd id="mLength">—</dd></div>
-    </dl>
+    <p class="intro">한 장에 한 메시지, 추상론 없이 숫자와 온도로. 주제마다 팔레트 계열을 완전히 다르게 잡아 같은 피드에 올려도 두 세트가 섞여 읽히지 않게 했습니다. 비율은 <code>data-ratio</code> 한 글자로 바뀌고 타입 스케일이 따라옵니다.</p>
 
-    <div class="actions">
-      <button type="button" id="dlPng" class="primary">PNG 내려받기</button>
-      <button type="button" id="dlSvg">SVG 내려받기</button>
+    <div class="cards">
+      <article class="card" style="--swatch:#241A14; --swatch2:#EFB230">
+        <div class="chip-row"><span class="chip"></span><span class="chip alt"></span></div>
+        <h3>스테이크는 온도로 굽는다</h3>
+        <p>꺼내는 시각, 표면의 물기, 팬에 넣는 순간의 온도. 굽기 전에 결정되는 것들.</p>
+        <div class="links">
+          <a href="cardnews/01-steak.html">4:5 피드</a>
+          <a href="cardnews/01-steak-9x16.html">9:16 스토리</a>
+        </div>
+      </article>
+
+      <article class="card" style="--swatch:#10303F; --swatch2:#6FD3E8">
+        <div class="chip-row"><span class="chip"></span><span class="chip alt"></span></div>
+        <h3>소금은 언제 넣느냐로 갈린다</h3>
+        <p>고기 · 면수 · 채소 · 반죽 · 마무리. 재료마다 소금이 일하는 방식이 다릅니다.</p>
+        <div class="links">
+          <a href="cardnews/02-salt.html">4:5 피드</a>
+          <a href="cardnews/02-salt-9x16.html">9:16 스토리</a>
+        </div>
+      </article>
+
+      <article class="card" style="--swatch:#2B1B3D; --swatch2:#F3A6C4">
+        <div class="chip-row"><span class="chip"></span><span class="chip alt"></span></div>
+        <h3>볶음이 질척해지는 이유</h3>
+        <p>팬 바닥에 국물이 고인다면 재료 문제가 아닙니다. 원인은 온도가 떨어진 지점에 있습니다.</p>
+        <div class="links">
+          <a href="cardnews/03-stirfry.html">4:5 피드</a>
+          <a href="cardnews/03-stirfry-9x16.html">9:16 스토리</a>
+        </div>
+      </article>
     </div>
-    <p class="hint">인쇄물에 넣을 거면 SVG를 쓰세요. 확대해도 깨지지 않고 용량도 작습니다.</p>
+  </section>
 
-    <p class="err" id="err" hidden></p>
+  <!-- ── 03 자동화 도구 ─────────────────────────── -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">03</span>
+      <h2>자동화 도구</h2>
+      <span class="tag">로컬 전용</span>
+    </div>
+
+    <p class="intro">같은 작업을 두 번째 할 때 처음부터 다시 알아내지 않으려고 만든 것들입니다. 값어치는 코드가 아니라 그 안에 박힌 판단에 있습니다.</p>
+
+    <div class="tools">
+      <article class="tool">
+        <h3>qrcode</h3>
+        <p>사이트 별칭을 나열하면 한 번에 생성하고, 전부를 한 장의 시트로 묶습니다. 브랜드 색을 쓰면 안 되는 이유와 대안 색이 함께 들어 있습니다.</p>
+        <p class="meta">URL · WiFi · 연락처 · 위치 &nbsp;/&nbsp; PNG · SVG</p>
+      </article>
+
+      <article class="tool">
+        <h3>cardnews</h3>
+        <p>색·서체 프리셋을 만들지 않는 것이 규칙입니다. 프리셋이 있으면 결국 그중 하나를 고르게 되고, 만드는 카드뉴스마다 같은 얼굴이 나오기 때문입니다.</p>
+        <p class="meta">1:1 · 4:5 · 9:16 &nbsp;/&nbsp; 대비 5쌍 자동 검사</p>
+      </article>
+
+      <article class="tool">
+        <h3>web-research</h3>
+        <p>추출기를 먼저 짜지 않고 구조를 먼저 조사합니다. 광고처럼 매번 달라지는 것은 차단 목록으로 쫓지 않고 구조의 끝에서 잘라냅니다.</p>
+        <p class="meta">정적·렌더링 판별 &nbsp;/&nbsp; 두 번 돌려 결과 비교</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- ── 04 확인하는 방법 ───────────────────────── -->
+  <section class="block">
+    <div class="block-head">
+      <span class="num">04</span>
+      <h2>확인하는 방법</h2>
+      <span class="tag">기록</span>
+    </div>
+
+    <p class="intro">만드는 것보다 여기에 시간이 더 들어갔고, 실제로 문제를 잡아낸 것도 전부 이쪽입니다.</p>
+
+    <ol class="method">
+      <li>
+        <h3>눈으로 보는 것과 읽히는 것을 구분한다</h3>
+        <p>QR은 생성 성공이 스캔 가능을 뜻하지 않습니다. Playwright로 페이지를 조작해 캔버스를 뽑고 OpenCV로 다시 디코딩해 원문과 일치하는지 확인했습니다. 한글 포함 5건 통과.</p>
+      </li>
+      <li>
+        <h3>두 번 돌려서 같은지 본다</h3>
+        <p>웹 페이지를 마크다운으로 옮기는데 실행할 때마다 결과가 달라졌습니다. 광고가 비동기로 붙어서였는데, 앞부분만 보면 멀쩡해 보입니다. 도메인 차단으로는 새 광고주가 나타나면 뚫리므로, 본문의 구조적 끝에서 잘라내는 쪽으로 해결했습니다.</p>
+      </li>
+      <li>
+        <h3>두 번째 대상으로 시험한다</h3>
+        <p>한 사이트에 맞춰 만든 추출기가 다른 사이트에서 <strong>517자</strong>만 뽑았습니다. 제목과 내용이 한 층에 평평하게 놓인다는 가정이 중첩 구조에서 깨진 것입니다. 재귀로 바꾸니 <strong>14,238자</strong>가 정상적으로 나왔습니다.</p>
+      </li>
+      <li>
+        <h3>색은 계산해서 정한다</h3>
+        <p>눈으로 고른 팔레트는 자주 틀립니다. 카드뉴스는 배경이 순환해 색 하나가 여러 역할을 겸하는데, 5쌍의 대비를 전부 계산해 통과한 것만 씁니다.</p>
+      </li>
+    </ol>
   </section>
 
 </main>
 
-<section class="wrap notes">
-  <h2>왜 브랜드 색을 그대로 쓰지 않나</h2>
-  <p>브랜드 색은 대개 중간 톤이라 흰 배경과의 대비가 모자랍니다. 스캐너는 모듈과 배경을 밝기 차이로 구분하기 때문에, 대비가 낮으면 어두운 환경이나 저가 리더에서 인식이 흔들립니다. 프리셋에 넣은 색은 <strong>색상(hue)은 유지하고 명도만 낮춘 값</strong>입니다.</p>
-  <table>
-    <thead><tr><th>브랜드 색</th><th>흰 배경 대비</th><th>이 도구가 쓰는 색</th></tr></thead>
-    <tbody>
-      <tr><td><span class="sw" style="background:#03C75A"></span> 네이버 <code>#03C75A</code></td><td>약 2.2 : 1 — 위험</td><td><span class="sw" style="background:#0B5E3B"></span> <code>#0B5E3B</code></td></tr>
-      <tr><td><span class="sw" style="background:#FF0000"></span> 유튜브 <code>#FF0000</code></td><td>약 4.0 : 1 — 적색 광원에서 뭉갬</td><td><span class="sw" style="background:#8C0B0B"></span> <code>#8C0B0B</code></td></tr>
-      <tr><td><span class="sw" style="background:#FEE500"></span> 카카오 <code>#FEE500</code></td><td>노랑은 모듈색으로 불가</td><td><span class="sw" style="background:#4A3B00"></span> <code>#4A3B00</code></td></tr>
-    </tbody>
-  </table>
-  <p class="fineprint">명암을 뒤집지 마세요 — 어두운 배경에 밝은 모듈은 못 읽는 스캐너가 많습니다. 색을 빼고 기본값(<code>#111111</code>)으로 두는 것이 언제나 가장 안전합니다.</p>
-</section>
-
-<footer class="wrap foot">
-  <span class="mono">QR generator</span>
-  <span>브라우저에서 생성됩니다 — 입력한 내용은 어디로도 전송되지 않습니다.</span>
+<footer class="foot">
+  <div class="wrap">
+    <span class="mono">MADE / 2026</span>
+    <span>정적 페이지 · 빌드 도구 없음 · GitHub Pages</span>
+  </div>
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
-<script src="app.js"></script>
 </body>
 </html>

@@ -1,0 +1,410 @@
+<title>스테이크는 온도로 굽는다 (세로)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Black+Han+Sans&family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     교체 구역 — 새 카드뉴스를 만들 때 고치는 곳은 여기가 전부다.
+     아래 본문 CSS에는 색·서체·치수 리터럴을 새로 넣지 말 것.
+     ═══════════════════════════════════════════════════════════ */
+  :root {
+    /* ① 카드 4색 — 숯·무쇠·불꽃. 5쌍 대비 검사 통과(최저 3.98:1)
+          c1 짙은 바탕 / c2 밝은 바탕
+          c3 강조 바탕 — 짙은 바탕 위 강조색도 겸하므로 반드시 '밝은' 색
+          c4 밝은 면 위 강조색 — 반드시 '어두운' 색 */
+    --c1: #241A14;
+    --c2: #EFEAE1;
+    --c3: #EFB230;
+    --c4: #8E3B15;
+
+    /* ② 서체 3역할 — mono는 번호·온도 등 라틴/숫자 전용 */
+    --font-display: "Black Han Sans", "Gothic A1", "Malgun Gothic", sans-serif;
+    --font-body:    "IBM Plex Sans KR", "Pretendard", "Malgun Gothic", system-ui, sans-serif;
+    --font-mono:    "IBM Plex Mono", ui-monospace, monospace;
+    --w-display:    400;   /* Black Han Sans는 단일 굵기 — 합성 볼드 방지 */
+
+    /* ③ 페이지 셸 — 카드를 둘러싼 배경. 카드 색과 분리해 둔다. */
+    --page-bg:   #F4F1EC;
+    --page-fg:   #211710;
+    --page-mute: #6F6055;
+    --rule:      rgba(33, 23, 16, .15);
+  }
+
+  /* 셸만 뷰어 테마를 따른다. 카드는 인쇄물처럼 색이 고정된다. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page-bg:   #17110C;
+      --page-fg:   #EDE5DA;
+      --page-mute: #A08D7C;
+      --rule:      rgba(237, 229, 218, .17);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg:   #17110C;
+    --page-fg:   #EDE5DA;
+    --page-mute: #A08D7C;
+    --rule:      rgba(237, 229, 218, .17);
+  }
+
+  /* ④ 비율 프리셋 — .deck의 data-ratio 한 글자로 전체가 따라온다. */
+  .deck {
+    --ratio:   1 / 1;
+    --t-title: 10.2cqw;
+    --t-body:  4.1cqw;
+    --t-step:  4.6cqw;
+    --t-label: 3.4cqw;
+    --t-row:   3.85cqw;
+    --pad:     8.5cqw;
+    --gap:     4cqw;    /* 카드 안 모든 간격이 이 값에서 파생된다 */
+  }
+  .deck[data-ratio="9:16"] {
+    --ratio:   4 / 5;
+    --t-title: 10.6cqw;
+    --t-body:  4.25cqw;
+    --t-step:  4.8cqw;
+    --t-label: 3.5cqw;
+    --t-row:   4cqw;
+    --pad:     8.5cqw;
+    --gap:     4.1cqw;
+  }
+  .deck[data-ratio="9:16"] {
+    --ratio:   9 / 16;
+    --t-title: 8.6cqw;
+    --t-body:  3.7cqw;
+    --t-step:  4cqw;
+    --t-label: 3.1cqw;
+    --t-row:   3.4cqw;
+    --pad:     8.5cqw;
+    --gap:     3.6cqw;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     이하 구조 — 주제가 바뀌어도 손대지 않는다.
+     ═══════════════════════════════════════════════════════════ */
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: clamp(36px, 7vw, 76px) 56px;
+  }
+
+  /* ── 페이지 머리말 ─────────────────────────────────── */
+  .masthead { display: flex; flex-direction: column; gap: 14px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .18em;
+    color: var(--page-mute);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: clamp(30px, 5.4vw, 50px);
+    letter-spacing: -.02em;
+    line-height: 1.22;
+    text-wrap: balance;
+  }
+
+  .masthead p {
+    margin: 0;
+    max-width: 48ch;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--page-mute);
+  }
+
+  /* ── 카드 덱 ───────────────────────────────────────── */
+  .deck {
+    margin-top: clamp(32px, 5vw, 52px);
+    display: grid;
+    gap: clamp(18px, 2.4vw, 26px);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  /* 배경 3색 순환 — 장수와 무관하게 동작한다. */
+  .card:nth-child(3n+1) { --bg: var(--c1); --fg: var(--c2); --accent: var(--c3); }
+  .card:nth-child(3n+2) { --bg: var(--c2); --fg: var(--c1); --accent: var(--c4); }
+  .card:nth-child(3n+3) { --bg: var(--c3); --fg: var(--c1); --accent: var(--c1); }
+
+  .card {
+    /* 패널·괘선은 전경색에서 파생된다. 색을 바꿔도 따라오므로 손댈 곳이 없다. */
+    --panel: color-mix(in srgb, var(--fg) 7%, transparent);
+    --hair:  color-mix(in srgb, var(--fg) 22%, transparent);
+
+    container-type: inline-size;   /* 이 줄이 있어야 cqw가 동작한다 */
+    aspect-ratio: var(--ratio);
+    max-width: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    padding: var(--pad);
+    display: grid;
+    grid-template-rows: auto 1fr auto;   /* 머리 / 본문 / 예시 */
+    gap: var(--gap);
+    overflow: hidden;
+  }
+
+  /* 카드 머리: 순서 번호 + 단계 이름 */
+  .card-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--gap) * .75);
+    padding-bottom: calc(var(--gap) * .85);
+    border-bottom: 1px solid var(--hair);
+  }
+  .step {
+    font-family: var(--font-mono);
+    font-size: var(--t-step);
+    font-weight: 500;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+  .stage {
+    font-size: var(--t-label);
+    font-weight: 600;
+    letter-spacing: .22em;
+    opacity: .62;
+  }
+
+  /* 카드 본문 */
+  .card-body {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--gap) * .9);
+  }
+  .card h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: var(--t-title);
+    line-height: 1.3;
+    letter-spacing: -.025em;
+    text-wrap: balance;
+  }
+  .card h2 em {
+    font-style: normal;
+    box-shadow: inset 0 -0.34em 0 color-mix(in srgb, var(--accent) 42%, transparent);
+  }
+  .card p {
+    margin: 0;
+    font-size: var(--t-body);
+    line-height: 1.85;
+    opacity: .82;
+    max-width: 26ch;
+  }
+
+  /* 카드 발치: 실제 예시 두 줄 */
+  .compare {
+    background: var(--panel);
+    padding: calc(var(--gap) * 1.1) calc(var(--gap) * 1.2);
+    display: grid;
+    gap: calc(var(--gap) * .8);
+  }
+  .row { display: grid; gap: calc(var(--gap) * .35); }
+  .row-label {
+    font-family: var(--font-mono);
+    font-size: var(--t-label);
+    letter-spacing: .1em;
+    color: var(--accent);
+  }
+  .row--weak .row-label { color: inherit; opacity: .45; }
+  .row-text {
+    font-size: var(--t-row);
+    line-height: 1.6;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .row--weak .row-text {
+    opacity: .5;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  }
+
+  /* 9:16 전용 — 추가한 셋째 줄은 괘선으로 앞의 줄들과 층을 나눈다 */
+  .row--rule {
+    border-top: 1px solid var(--hair);
+    padding-top: calc(var(--gap) * .7);
+  }
+
+  /* ── 꼬리말 ────────────────────────────────────────── */
+  .colophon {
+    margin-top: 34px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    letter-spacing: .1em;
+    color: var(--page-mute);
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">COOKING 01 · 5 CARDS</div>
+    <h1>스테이크는 온도로 굽는다</h1>
+    <p>좋은 고기를 사고도 실패하는 건 대부분 불 조절 때문이 아니다. 꺼내는 시각, 표면의 물기, 팬에 넣는 순간의 온도 — 굽기 전에 결정되는 것들이다.</p>
+  </header>
+
+  <!-- data-ratio: 생략하면 1:1. "4:5" 또는 "9:16"으로 교체 -->
+  <div class="deck" data-ratio="9:16">
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">01</span>
+        <span class="stage">준비</span>
+      </div>
+      <div class="card-body">
+        <h2>굽기 <em>40분 전</em>에 꺼내라</h2>
+        <p>냉장고에서 바로 간 고기는 겉이 타는 동안 속이 차갑다. 심부 온도를 먼저 끌어올려야 한다.</p>
+      </div>
+      <div class="compare">
+        <div class="row row--weak">
+          <span class="row-label">NO</span>
+          <span class="row-text">냉장실 4°C에서 꺼내 바로 팬으로</span>
+        </div>
+        <div class="row">
+          <span class="row-label">YES</span>
+          <span class="row-text">실온에 40분 방치 → 심부 18~20°C</span>
+        </div>
+        <div class="row row--rule">
+          <span class="row-label">NOTE</span>
+          <span class="row-text">두께 2cm 미만이면 생략 — 실온에 두는 사이 표면만 마른다</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">02</span>
+        <span class="stage">물기</span>
+      </div>
+      <div class="card-body">
+        <h2>젖은 고기는 <em>구워지지 않는다</em></h2>
+        <p>표면에 물이 남아 있으면 100°C에서 더 오르지 못한다. 갈색이 나기 시작하는 온도는 140°C다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">DO</span>
+          <span class="row-text">키친타월로 눌러 닦기 · 문지르지 말 것</span>
+        </div>
+        <div class="row">
+          <span class="row-label">BONUS</span>
+          <span class="row-text">소금 뿌려 냉장 1시간 → 배어난 물 다시 닦기</span>
+        </div>
+        <div class="row row--rule">
+          <span class="row-label">NOTE</span>
+          <span class="row-text">냉장고에 포장 없이 12시간 두면 표면이 더 마른다</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">03</span>
+        <span class="stage">예열</span>
+      </div>
+      <div class="card-body">
+        <h2>기름에 <em>아지랑이</em>가 설 때</h2>
+        <p>미지근한 팬에 올리면 색이 나기 전에 육즙이 먼저 빠진다. 팬을 먼저 이기고 시작한다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">TARGET</span>
+          <span class="row-text">팬 표면 200°C 이상 · 연기 직전</span>
+        </div>
+        <div class="row">
+          <span class="row-label">CHECK</span>
+          <span class="row-text">물 한 방울이 구슬처럼 굴러다니면 준비 완료</span>
+        </div>
+        <div class="row row--rule">
+          <span class="row-label">NOTE</span>
+          <span class="row-text">논스틱 팬은 200°C를 못 견딘다 — 무쇠나 스테인리스로</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">04</span>
+        <span class="stage">굽기</span>
+      </div>
+      <div class="card-body">
+        <h2>뒤집기는 <em>자주</em> 해도 된다</h2>
+        <p>“한 번만 뒤집어라”는 속설이다. 30초마다 뒤집으면 속이 더 고르게 익고 겉면도 똑같이 난다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">SPEC</span>
+          <span class="row-text">두께 2.5cm · 총 4~5분 · 30초마다 뒤집기</span>
+        </div>
+        <div class="row">
+          <span class="row-label">TEMP</span>
+          <span class="row-text">불에서 내릴 때 심부 52~54°C</span>
+        </div>
+        <div class="row row--rule">
+          <span class="row-label">NOTE</span>
+          <span class="row-text">두께 4cm를 넘으면 팬에서 겉만 내고 오븐 120°C로 옮긴다</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">05</span>
+        <span class="stage">레스팅</span>
+      </div>
+      <div class="card-body">
+        <h2>바로 자르면 <em>도마가</em> 먹는다</h2>
+        <p>구운 시간의 절반만큼 재운다. 수축했던 근섬유가 풀리며 육즙이 제자리를 찾아간다.</p>
+      </div>
+      <div class="compare">
+        <div class="row row--weak">
+          <span class="row-label">NO</span>
+          <span class="row-text">팬에서 내리자마자 칼질</span>
+        </div>
+        <div class="row">
+          <span class="row-label">YES</span>
+          <span class="row-text">5분 휴지 · 호일은 덮기만 · 이 사이 심부 2~3°C 상승</span>
+        </div>
+        <div class="row row--rule">
+          <span class="row-label">NOTE</span>
+          <span class="row-text">썰 때는 결 반대로, 칼을 눕혀 얇게</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="colophon">
+    <span>9:16 세로형 · 5장</span>
+    <span>화면 캡처해서 그대로 업로드</span>
+  </div>
+</div>

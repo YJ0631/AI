@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>QR 생성기</title>
+<meta name="description" content="스캔되는 QR을 만드는 도구. 색 대비를 실시간으로 검사해 읽히지 않는 QR을 미리 막아준다.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+KR:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+  <div class="wrap">
+    <p class="eyebrow">QR CODE GENERATOR</p>
+    <h1>스캔되는 QR을 만든다</h1>
+    <p class="lede">QR은 “생성됐다”와 “읽힌다”가 다릅니다. 브랜드 색을 그대로 쓰면 대비가 모자라 인식이 불안정해지는데, 눈으로는 알아채기 어렵습니다. 이 도구는 색 대비를 실시간으로 검사해 그걸 미리 알려줍니다.</p>
+  </div>
+</header>
+
+<main class="wrap layout">
+
+  <!-- ── 왼쪽: 입력 ───────────────────────────────── -->
+  <section class="panel controls">
+
+    <div class="field">
+      <label for="data">내용</label>
+      <textarea id="data" rows="3" spellcheck="false"
+                placeholder="https://example.com 또는 아무 텍스트">https://github.com/YJ0631</textarea>
+      <p class="hint" id="dataHint">입력하는 대로 오른쪽 미리보기가 바뀝니다.</p>
+    </div>
+
+    <div class="field">
+      <label>사이트 프리셋</label>
+      <div class="presets" id="presets"></div>
+      <p class="hint">누르면 주소와 <strong>스캔 안전색</strong>이 함께 채워집니다. 브랜드 색 그대로가 아닙니다 — 아래 설명 참고.</p>
+    </div>
+
+    <div class="field row2">
+      <div>
+        <label for="dark">모듈 색</label>
+        <div class="colorbox">
+          <input type="color" id="dark" value="#111111">
+          <input type="text" id="darkHex" class="hex" value="#111111" spellcheck="false">
+        </div>
+      </div>
+      <div>
+        <label for="light">배경 색</label>
+        <div class="colorbox">
+          <input type="color" id="light" value="#FFFFFF">
+          <input type="text" id="lightHex" class="hex" value="#FFFFFF" spellcheck="false">
+        </div>
+      </div>
+    </div>
+
+    <div class="contrast" id="contrast" data-level="ok">
+      <div class="contrast-head">
+        <span class="contrast-label">대비비</span>
+        <span class="contrast-value" id="ratio">21.0 : 1</span>
+      </div>
+      <p class="contrast-msg" id="contrastMsg">충분합니다.</p>
+      <button type="button" class="fixbtn" id="fixBtn" hidden>안전한 색으로 바꾸기</button>
+    </div>
+
+    <div class="field row2">
+      <div>
+        <label for="ecc">오류정정</label>
+        <select id="ecc">
+          <option value="L">L — 7% 복원</option>
+          <option value="M">M — 15% 복원</option>
+          <option value="Q">Q — 25% 복원</option>
+          <option value="H" selected>H — 30% 복원 (권장)</option>
+        </select>
+      </div>
+      <div>
+        <label for="margin">여백 (모듈)</label>
+        <input type="number" id="margin" min="0" max="12" step="1" value="4">
+      </div>
+    </div>
+    <p class="hint">로고를 얹을 계획이면 <strong>H</strong>를 유지하세요. 인쇄물은 여백 <strong>4 이상</strong>이 규격입니다.</p>
+
+    <div class="field">
+      <label for="size">크기 <span class="mono" id="sizeOut">512px</span></label>
+      <input type="range" id="size" min="128" max="1024" step="32" value="512">
+    </div>
+
+  </section>
+
+  <!-- ── 오른쪽: 미리보기 ─────────────────────────── -->
+  <section class="panel preview">
+    <div class="stage" id="stage">
+      <canvas id="canvas" aria-label="생성된 QR 코드"></canvas>
+    </div>
+
+    <dl class="meta">
+      <div><dt>버전</dt><dd id="mVersion">—</dd></div>
+      <div><dt>모듈</dt><dd id="mModules">—</dd></div>
+      <div><dt>길이</dt><dd id="mLength">—</dd></div>
+    </dl>
+
+    <div class="actions">
+      <button type="button" id="dlPng" class="primary">PNG 내려받기</button>
+      <button type="button" id="dlSvg">SVG 내려받기</button>
+    </div>
+    <p class="hint">인쇄물에 넣을 거면 SVG를 쓰세요. 확대해도 깨지지 않고 용량도 작습니다.</p>
+
+    <p class="err" id="err" hidden></p>
+  </section>
+
+</main>
+
+<section class="wrap notes">
+  <h2>왜 브랜드 색을 그대로 쓰지 않나</h2>
+  <p>브랜드 색은 대개 중간 톤이라 흰 배경과의 대비가 모자랍니다. 스캐너는 모듈과 배경을 밝기 차이로 구분하기 때문에, 대비가 낮으면 어두운 환경이나 저가 리더에서 인식이 흔들립니다. 프리셋에 넣은 색은 <strong>색상(hue)은 유지하고 명도만 낮춘 값</strong>입니다.</p>
+  <table>
+    <thead><tr><th>브랜드 색</th><th>흰 배경 대비</th><th>이 도구가 쓰는 색</th></tr></thead>
+    <tbody>
+      <tr><td><span class="sw" style="background:#03C75A"></span> 네이버 <code>#03C75A</code></td><td>약 2.2 : 1 — 위험</td><td><span class="sw" style="background:#0B5E3B"></span> <code>#0B5E3B</code></td></tr>
+      <tr><td><span class="sw" style="background:#FF0000"></span> 유튜브 <code>#FF0000</code></td><td>약 4.0 : 1 — 적색 광원에서 뭉갬</td><td><span class="sw" style="background:#8C0B0B"></span> <code>#8C0B0B</code></td></tr>
+      <tr><td><span class="sw" style="background:#FEE500"></span> 카카오 <code>#FEE500</code></td><td>노랑은 모듈색으로 불가</td><td><span class="sw" style="background:#4A3B00"></span> <code>#4A3B00</code></td></tr>
+    </tbody>
+  </table>
+  <p class="fineprint">명암을 뒤집지 마세요 — 어두운 배경에 밝은 모듈은 못 읽는 스캐너가 많습니다. 색을 빼고 기본값(<code>#111111</code>)으로 두는 것이 언제나 가장 안전합니다.</p>
+</section>
+
+<footer class="wrap foot">
+  <span class="mono">QR generator</span>
+  <span>브라우저에서 생성됩니다 — 입력한 내용은 어디로도 전송되지 않습니다.</span>
+</footer>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.1/qrcode.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

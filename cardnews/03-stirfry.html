@@ -1,0 +1,385 @@
+<title>볶음이 질척해지는 이유</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;600&family=JetBrains+Mono:wght@600&display=swap">
+<style>
+  /* ═══════════════════════════════════════════════════════════
+     교체 구역 — 새 카드뉴스를 만들 때 고치는 곳은 여기가 전부다.
+     아래 본문 CSS에는 색·서체·치수 리터럴을 새로 넣지 말 것.
+     ═══════════════════════════════════════════════════════════ */
+  :root {
+    /* ① 카드 4색 — 가지·고추·불. 5쌍 대비 검사 통과(최저 4.18:1)
+          c1 짙은 바탕 / c2 밝은 바탕
+          c3 강조 바탕 — 짙은 바탕 위 강조색도 겸하므로 반드시 '밝은' 색
+          c4 밝은 면 위 강조색 — 반드시 '어두운' 색 */
+    --c1: #2B1B3D;
+    --c2: #F0E7EC;
+    --c3: #F3A6C4;
+    --c4: #8E2A5F;
+
+    /* ② 서체 3역할 — mono는 CASE n·숫자 등 라틴 전용 */
+    --font-display: "Do Hyeon", "Gothic A1", "Malgun Gothic", sans-serif;
+    --font-body:    "Noto Sans KR", "Pretendard", "Malgun Gothic", system-ui, sans-serif;
+    --font-mono:    "JetBrains Mono", ui-monospace, monospace;
+    --w-display:    400;   /* Do Hyeon은 단일 굵기 — 합성 볼드 방지 */
+
+    /* ③ 페이지 셸 — 카드를 둘러싼 배경. 카드 색과 분리해 둔다. */
+    --page-bg:   #F3EFF2;
+    --page-fg:   #271A33;
+    --page-mute: #6F5F79;
+    --rule:      rgba(39, 26, 51, .15);
+  }
+
+  /* 셸만 뷰어 테마를 따른다. 카드는 인쇄물처럼 색이 고정된다. */
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --page-bg:   #150E1D;
+      --page-fg:   #EBE2EE;
+      --page-mute: #9C8BA6;
+      --rule:      rgba(235, 226, 238, .17);
+    }
+  }
+  :root[data-theme="dark"] {
+    --page-bg:   #150E1D;
+    --page-fg:   #EBE2EE;
+    --page-mute: #9C8BA6;
+    --rule:      rgba(235, 226, 238, .17);
+  }
+
+  /* ④ 비율 프리셋 — .deck의 data-ratio 한 글자로 전체가 따라온다.
+        이 덱은 머리 표기가 'CASE n'이라 --t-step을 한 단계 낮춘다. */
+  .deck {
+    --ratio:   1 / 1;
+    --t-title: 10.2cqw;
+    --t-body:  4.1cqw;
+    --t-step:  3.8cqw;
+    --t-label: 3.4cqw;
+    --t-row:   3.85cqw;
+    --pad:     8.5cqw;
+    --gap:     4cqw;    /* 카드 안 모든 간격이 이 값에서 파생된다 */
+  }
+  .deck[data-ratio="4:5"] {
+    --ratio:   4 / 5;
+    --t-title: 10.6cqw;
+    --t-body:  4.25cqw;
+    --t-step:  3.95cqw;
+    --t-label: 3.5cqw;
+    --t-row:   4cqw;
+    --pad:     8.5cqw;
+    --gap:     4.1cqw;
+  }
+  .deck[data-ratio="9:16"] {
+    --ratio:   9 / 16;
+    --t-title: 8.6cqw;
+    --t-body:  3.7cqw;
+    --t-step:  3.3cqw;
+    --t-label: 3.1cqw;
+    --t-row:   3.4cqw;
+    --pad:     8.5cqw;
+    --gap:     3.6cqw;
+  }
+
+  /* ═══════════════════════════════════════════════════════════
+     이하 구조 — 주제가 바뀌어도 손대지 않는다.
+     ═══════════════════════════════════════════════════════════ */
+
+  * { box-sizing: border-box; }
+
+  body {
+    margin: 0;
+    background: var(--page-bg);
+    color: var(--page-fg);
+    font-family: var(--font-body);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .wrap {
+    max-width: 1240px;
+    margin: 0 auto;
+    padding-inline: 20px;
+    padding-block: clamp(36px, 7vw, 76px) 56px;
+  }
+
+  /* ── 페이지 머리말 ─────────────────────────────────── */
+  .masthead { display: flex; flex-direction: column; gap: 14px; }
+
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    letter-spacing: .18em;
+    color: var(--page-mute);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .eyebrow::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: clamp(30px, 5.4vw, 50px);
+    letter-spacing: -.02em;
+    line-height: 1.22;
+    text-wrap: balance;
+  }
+
+  .masthead p {
+    margin: 0;
+    max-width: 48ch;
+    font-size: 15px;
+    line-height: 1.8;
+    color: var(--page-mute);
+  }
+
+  /* ── 카드 덱 ───────────────────────────────────────── */
+  .deck {
+    margin-top: clamp(32px, 5vw, 52px);
+    display: grid;
+    gap: clamp(18px, 2.4vw, 26px);
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  }
+
+  /* 배경 3색 순환 — 장수와 무관하게 동작한다. */
+  .card:nth-child(3n+1) { --bg: var(--c1); --fg: var(--c2); --accent: var(--c3); }
+  .card:nth-child(3n+2) { --bg: var(--c2); --fg: var(--c1); --accent: var(--c4); }
+  .card:nth-child(3n+3) { --bg: var(--c3); --fg: var(--c1); --accent: var(--c1); }
+
+  .card {
+    /* 패널·괘선은 전경색에서 파생된다. 색을 바꿔도 따라오므로 손댈 곳이 없다. */
+    --panel: color-mix(in srgb, var(--fg) 7%, transparent);
+    --hair:  color-mix(in srgb, var(--fg) 22%, transparent);
+
+    container-type: inline-size;   /* 이 줄이 있어야 cqw가 동작한다 */
+    aspect-ratio: var(--ratio);
+    max-width: 100%;
+    background: var(--bg);
+    color: var(--fg);
+    padding: var(--pad);
+    display: grid;
+    grid-template-rows: auto 1fr auto;   /* 머리 / 본문 / 예시 */
+    gap: var(--gap);
+    overflow: hidden;
+  }
+
+  /* 카드 머리: 라틴 표기 + 한글 원인 라벨 (순서가 아니라 갈래다) */
+  .card-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: calc(var(--gap) * .75);
+    padding-bottom: calc(var(--gap) * .85);
+    border-bottom: 1px solid var(--hair);
+  }
+  .step {
+    font-family: var(--font-mono);
+    font-size: var(--t-step);
+    font-weight: 600;
+    color: var(--accent);
+    letter-spacing: .04em;
+  }
+  .stage {
+    font-size: var(--t-label);
+    font-weight: 600;
+    letter-spacing: .22em;
+    opacity: .62;
+  }
+
+  /* 카드 본문 */
+  .card-body {
+    align-self: center;
+    display: flex;
+    flex-direction: column;
+    gap: calc(var(--gap) * .9);
+  }
+  .card h2 {
+    margin: 0;
+    font-family: var(--font-display);
+    font-weight: var(--w-display);
+    font-size: var(--t-title);
+    line-height: 1.3;
+    letter-spacing: -.025em;
+    text-wrap: balance;
+  }
+  .card h2 em {
+    font-style: normal;
+    box-shadow: inset 0 -0.34em 0 color-mix(in srgb, var(--accent) 42%, transparent);
+  }
+  .card p {
+    margin: 0;
+    font-size: var(--t-body);
+    line-height: 1.85;
+    opacity: .82;
+    max-width: 26ch;
+  }
+
+  /* 카드 발치: 증상 → 해결 두 줄 */
+  .compare {
+    background: var(--panel);
+    padding: calc(var(--gap) * 1.1) calc(var(--gap) * 1.2);
+    display: grid;
+    gap: calc(var(--gap) * .8);
+  }
+  .row { display: grid; gap: calc(var(--gap) * .35); }
+  .row-label {
+    font-family: var(--font-mono);
+    font-size: var(--t-label);
+    letter-spacing: .1em;
+    color: var(--accent);
+  }
+  .row--weak .row-label { color: inherit; opacity: .45; }
+  .row-text {
+    font-size: var(--t-row);
+    line-height: 1.6;
+    font-weight: 500;
+    font-variant-numeric: tabular-nums;
+  }
+  .row--weak .row-text {
+    opacity: .5;
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+    text-decoration-color: color-mix(in srgb, currentColor 45%, transparent);
+  }
+
+  /* ── 꼬리말 ────────────────────────────────────────── */
+  .colophon {
+    margin-top: 34px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 22px;
+    font-family: var(--font-body);
+    font-size: 11.5px;
+    letter-spacing: .1em;
+    color: var(--page-mute);
+  }
+</style>
+
+<div class="wrap">
+  <header class="masthead">
+    <div class="eyebrow">COOKING 03 · 5 CARDS</div>
+    <h1>볶음이 질척해지는 이유</h1>
+    <p>레시피대로 했는데 팬 바닥에 국물이 고인다면 재료나 양념 문제가 아니다. 원인은 거의 언제나 온도가 떨어진 지점에 있다. 증상으로 찾아보는 다섯 가지.</p>
+  </header>
+
+  <!-- data-ratio: 생략하면 1:1. "4:5" 또는 "9:16"으로 교체 -->
+  <div class="deck" data-ratio="4:5">
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">CASE 1</span>
+        <span class="stage">팬 온도</span>
+      </div>
+      <div class="card-body">
+        <h2>찬 팬에 넣으면 <em>찜이 된다</em></h2>
+        <p>재료가 닿는 순간 팬이 100°C 아래로 떨어지면 수분이 증발하지 못하고 그대로 고인다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">SYMPTOM</span>
+          <span class="row-text">넣자마자 팬 바닥에 국물이 찬다</span>
+        </div>
+        <div class="row">
+          <span class="row-label">FIX</span>
+          <span class="row-text">기름에 아지랑이가 설 때까지 기다렸다가 투입</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">CASE 2</span>
+        <span class="stage">양</span>
+      </div>
+      <div class="card-body">
+        <h2>한 번에 <em>바닥의 60%</em>까지</h2>
+        <p>가득 채우면 팬이 온도를 회복하지 못한다. 두 번에 나눠 볶는 쪽이 결국 더 빠르다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">SYMPTOM</span>
+          <span class="row-text">재료끼리 들러붙고 갈색이 전혀 안 난다</span>
+        </div>
+        <div class="row">
+          <span class="row-label">FIX</span>
+          <span class="row-text">2회 분할 · 사이에 팬을 30초 다시 달군다</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">CASE 3</span>
+        <span class="stage">물기</span>
+      </div>
+      <div class="card-body">
+        <h2>씻은 채소는 <em>닦아서</em> 넣는다</h2>
+        <p>표면에 남은 물 한 큰술이 팬 온도를 수십 도 끌어내린다. 터는 것으로는 부족하다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">SYMPTOM</span>
+          <span class="row-text">‘치익’ 대신 ‘보글’ 소리가 난다</span>
+        </div>
+        <div class="row">
+          <span class="row-label">FIX</span>
+          <span class="row-text">채반에 10분 + 키친타월로 마무리</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">CASE 4</span>
+        <span class="stage">순서</span>
+      </div>
+      <div class="card-body">
+        <h2>익는 시간으로 <em>줄을 세워라</em></h2>
+        <p>당근과 숙주를 같이 넣으면 하나는 설익고 하나는 물러진다. 한꺼번에 넣을 재료는 없다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">ORDER</span>
+          <span class="row-text">당근·양파 → 버섯·파프리카 → 숙주·부추</span>
+        </div>
+        <div class="row">
+          <span class="row-label">GAP</span>
+          <span class="row-text">단계마다 30~60초씩 띄운다</span>
+        </div>
+      </div>
+    </article>
+
+    <article class="card">
+      <div class="card-top">
+        <span class="step">CASE 5</span>
+        <span class="stage">소스</span>
+      </div>
+      <div class="card-body">
+        <h2>소스는 <em>불을 키우고</em> 붓는다</h2>
+        <p>약한 불에 부으면 졸지 못하고 재료에 스며든다. 팬 가장자리로 둘러 부어 먼저 끓인다.</p>
+      </div>
+      <div class="compare">
+        <div class="row">
+          <span class="row-label">SYMPTOM</span>
+          <span class="row-text">재료가 소스에 잠겨 흐물해진다</span>
+        </div>
+        <div class="row">
+          <span class="row-label">FIX</span>
+          <span class="row-text">센 불 · 가장자리로 둘러 붓기 · 20초 안에 코팅 끝내기</span>
+        </div>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="colophon">
+    <span>4:5 세로형 · 5장</span>
+    <span>화면 캡처해서 그대로 업로드</span>
+  </div>
+</div>
